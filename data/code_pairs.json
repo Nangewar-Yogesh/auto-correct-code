@@ -1,0 +1,10 @@
+[
+  {
+    "buggy_code": "for i in range(5)\nprint(i)",
+    "corrected_code": "for i in range(5):\n    print(i)"
+  },
+  {
+    "buggy_code": "if a = 10:\n    print(a)",
+    "corrected_code": "if a == 10:\n    print(a)"
+  }
+]

@@ -1,0 +1,6 @@
+services:
+  - type: web
+    name: code-corrector
+    env: python
+    buildCommand: ""
+    startCommand: python app.py
