@@ -1,19 +1,21 @@
 from flask import Flask, request, jsonify
-from tensorflow.keras.models import load_model
+import tensorflow as tf
+from keras.models import load_model
 import numpy as np
 
 app = Flask(__name__)
 
 # Load the trained model
-model = load_model('model/saved_model/seq2seq_model.h5')
+model = load_model("model/saved_model/seq2seq_model.h5")
 
-# Dummy tokenizer example (replace with your actual tokenizer logic)
-def preprocess_input(code):
-    # Convert string to integer sequences, pad if needed
-    return np.array([[1, 2, 3, 4]])  # Dummy data
+# Dummy preprocessing and postprocessing for demonstration
+def preprocess(code):
+    # You should replace this with actual tokenizer/encoder logic
+    return np.array([[1, 2, 3]])
 
-def decode_prediction(pred):
-    return "corrected code output"  # Replace with actual decoding
+def postprocess(prediction):
+    # Replace this with your actual decoding logic
+    return "for(int i=0; i<10; i++) {"
 
 @app.route('/')
 def home():
@@ -22,20 +24,23 @@ def home():
 @app.route('/predict', methods=['POST'])
 def predict():
     data = request.get_json()
-    buggy_code = data.get('code', '')
+    buggy_code = data.get("buggy_code")
 
-    # Preprocess
-    input_seq = preprocess_input(buggy_code)
+    if buggy_code is None:
+        return jsonify({"error": "No buggy_code field provided"}), 400
 
-    # Predict
+    # Preprocess the input
+    input_seq = preprocess(buggy_code)
+
+    # Predict using the model
     prediction = model.predict(input_seq)
 
-    # Decode prediction
-    corrected_code = decode_prediction(prediction)
+    # Postprocess to get readable output
+    corrected_code = postprocess(prediction)
 
     return jsonify({
-        'buggy_code': buggy_code,
-        'corrected_code': corrected_code
+        "buggy_code": buggy_code,
+        "corrected_code": corrected_code
     })
 
 if __name__ == '__main__':
