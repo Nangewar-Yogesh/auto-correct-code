@@ -1,47 +1,37 @@
 from flask import Flask, request, jsonify
-from keras.models import load_model
-import numpy as np
+from tensorflow.keras.models import load_model
 import json
+import numpy as np
+from tensorflow.keras.preprocessing.text import Tokenizer
+from tensorflow.keras.preprocessing.sequence import pad_sequences
 
 app = Flask(__name__)
 
-# Load your trained model
-model = load_model("model/saved_model/seq2seq_model.h5")
+# Load model and tokenizer
+model = load_model('model/saved_model/seq2seq_model.h5')
 
-# Dummy preprocessing (you must replace this with your tokenizer logic)
-def preprocess(code):
-    # Example placeholder
-    return np.array([[1, 2, 3, 4]])  # Dummy sequence
+with open('model/saved_model/tokenizer.json') as f:
+    data = json.load(f)
+    tokenizer = Tokenizer.from_json(data)
 
-# Dummy postprocessing (replace with actual decoding logic)
-def postprocess(prediction):
-    return "corrected code: for(int i=0; i<10; i++) {"
-
-@app.route('/')
-def home():
-    return "✅ Auto-Correct ML App is Running!"
+MAX_LEN = 50
 
 @app.route('/predict', methods=['POST'])
 def predict():
-    data = request.get_json()
-    buggy_code = data.get("buggy_code", "")
+    data = request.json
+    buggy_code = data.get('buggy_code')
 
     if not buggy_code:
-        return jsonify({"error": "No buggy_code provided"}), 400
+        return jsonify({'error': 'No input provided'}), 400
 
-    # Preprocess input
-    input_seq = preprocess(buggy_code)
+    input_seq = tokenizer.texts_to_sequences([buggy_code])
+    input_seq = pad_sequences(input_seq, maxlen=MAX_LEN, padding='post')
 
-    # Predict using the model
-    prediction = model.predict(input_seq)
+    prediction = model.predict([input_seq, input_seq])
+    predicted_seq = np.argmax(prediction, axis=-1)
 
-    # Decode prediction
-    corrected_code = postprocess(prediction)
+    corrected_tokens = tokenizer.sequences_to_texts(predicted_seq)[0]
+    return jsonify({'corrected_code': corrected_tokens.strip()})
 
-    return jsonify({
-        "buggy_code": buggy_code,
-        "corrected_code": corrected_code
-    })
-
-if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=10000)
+if __name__ == "__main__":
+    app.run(debug=False, host='0.0.0.0', port=10000)
