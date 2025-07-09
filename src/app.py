@@ -1,10 +1,9 @@
-from keras.models import load_model
-model = load_model('model/saved_model/seq2seq_model1.h5')  # adjust path if needed
-from flask import request, jsonify
+from flask import Flask
+app = Flask(__name__)
 
-@app.route('/predict', methods=['POST'])
-def predict():
-    input_text = request.json['text']  # Input from user
-    # do preprocessing and prediction using your model
-    prediction = model.predict(…)  # Your logic here
-    return jsonify({'corrected': prediction})
+@app.route('/')
+def home():
+    return "✅ Auto-Correct ML App is Running!"
+
+if __name__ == '__main__':
+    app.run(host='0.0.0.0', port=10000)
