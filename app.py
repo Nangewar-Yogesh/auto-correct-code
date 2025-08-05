@@ -1,9 +1,13 @@
-from flask import Flask
+from flask import Flask, request, jsonify
+
 app = Flask(__name__)
 
-@app.route('/')
-def home():
-    return "✅ Auto-Correct ML App is Running!"
-
-if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=10000)
+@app.route('/predict', methods=['POST'])
+def predict():
+    data = request.get_json()
+    code = data.get('code')
+    
+    # dummy example
+    corrected_code = code.replace("prnt", "print")
+    
+    return jsonify({'corrected_code': corrected_code})
